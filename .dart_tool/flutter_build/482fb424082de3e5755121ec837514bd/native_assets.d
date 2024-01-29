@@ -1,0 +1,1 @@
+ /home/gabrielz/programs/vikobaplus/.dart_tool/flutter_build/482fb424082de3e5755121ec837514bd/native_assets.yaml: 
