@@ -1,0 +1,925 @@
+/// FILEPATH: /home/gabrielz/Desktop/vikobaplus/lib/homepage.dart
+/// 
+/// This file contains the implementation of the homepage screen and related widgets.
+/// 
+/// The [CategoriesScreen] widget displays a grid of categories using the [GridView] widget.
+/// Each category is represented by a [CategoryItem] widget.
+/// 
+/// The [CategoryItem] widget is a clickable container that displays the title of a category.
+/// When tapped, it navigates to the [CategoryMealsScreen] widget, passing the category id and title as arguments.
+/// 
+/// The [CategoryMealsScreen] widget displays a list of meals in a specific category.
+/// It receives a list of available meals as a parameter and filters them based on the selected category.
+/// Each meal is represented by a [MealItem] widget.
+/// 
+/// The [MealItem] widget displays an image, title, duration, complexity, and affordability of a meal.
+/// When tapped, it navigates to the [MealDetailScreen] widget, passing the meal id as an argument.
+/// 
+/// The [FavoritesScreen] widget displays a list of favorite meals.
+/// If the list is empty, it shows a message indicating that there are no favorites yet.
+/// 
+/// The [TabsScreen] widget displays tabs for the categories screen and favorites screen.
+/// It manages the state of the selected tab and switches between the screens based on the selected tab.
+/// 
+/// The [MainDrawer] widget displays the app drawer with a list of options.
+/// Each option is represented by a [ListTile] widget.
+/// 
+/// This file also imports the model and dummy data from '../dummy_data.dart'.
+import 'package:flutter/material.dart';
+
+import './models/meal.dart';
+
+
+// Import the model and dummy data
+
+import '../dummy_data.dart';
+
+
+//   // Define the Meal class
+//   class Meal {
+//     final String id;
+//     final List<String> categories;
+//     final String title;
+//     final String imageUrl;
+//     final List<String> ingredients;
+//     final List<String> steps;
+//     final int duration;
+//   final Complexity complexity;
+//   final Affordability affordability;
+//   final bool isGlutenFree;
+//   final bool isVegan;
+//   final bool isVegetarian;
+//   final bool isLactoseFree;
+
+//   const Meal({
+//     required this.id,
+//     required this.categories,
+//     required this.title,
+//     required this.imageUrl,
+//     required this.ingredients,
+//     required this.steps,
+//     required this.duration,
+//     required this.complexity,
+//     required this.affordability,
+//     required this.isGlutenFree,
+//     required this.isVegan,
+//     required this.isVegetarian,
+//     required this.isLactoseFree,
+//   });
+// }
+
+
+enum Complexity { Simple,
+   Challenging, 
+   Hard }
+enum Affordability { Affordable, Pricey, Luxurious }
+
+class CategoriesScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GridView(
+      padding: const EdgeInsets.all(25),
+      children: DUMMY_CATEGORIES
+          .map(
+            (catData) => CategoryItem(
+                  catData.id,
+                  catData.title,
+                  catData.color,
+                ),
+          )
+          .toList(),
+      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 200,
+        childAspectRatio: 3 / 2,
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
+      ),
+    );
+  }
+}
+
+
+
+// Define the CategoryItem widget for displaying individual category items
+class CategoryItem extends StatelessWidget {
+  final String id;
+  final String title;
+  final Color color;
+
+
+  CategoryItem(this.id, this.title, this.color);
+
+  void selectCategory(BuildContext ctx) {
+    Navigator.of(ctx).pushNamed(
+      CategoryMealsScreen.routeName,
+      arguments: {
+        'id': id,
+        'title': title,
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => selectCategory(context),
+      splashColor: Theme.of(context).primaryColor,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        child: Text(
+          title,
+          style: Theme.of(context).textTheme.headline6,
+        ),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color.withOpacity(0.7),
+              color,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+    );
+  }
+}
+
+// Define the CategoryMealsScreen widget for displaying meals in a category
+class CategoryMealsScreen extends StatelessWidget {
+  static const routeName = '/category-meals';
+
+  final String categoryId;
+  final String categoryTite;
+  final List<Meal> availableMeals;
+
+  CategoryMealsScreen(this.categoryId, this.categoryTite, this.availableMeals);
+
+  @override
+  Widget build(BuildContext context) {
+    final routeArgs =
+        ModalRoute.of(context)?.settings.arguments as Map<String, String>;
+    final categoryTitle = routeArgs['title'];
+    final categoryId = routeArgs['id'];
+    final categoryMeals = availableMeals.where((meal) {
+      return meal.categories.contains(categoryId);
+    }).toList();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(categoryTitle!),
+      ),
+      body: ListView.builder(
+        itemBuilder: (ctx, index) {
+          return MealItem(
+            id: categoryMeals[index].id,
+            title: categoryMeals[index].title,
+            imageUrl: categoryMeals[index].imageUrl,
+            duration: categoryMeals[index].duration,        
+            affordability: categoryMeals[index].affordability.toString(),
+            complexity: categoryMeals[index].complexity.toString(),
+          );
+        },
+        itemCount: categoryMeals.length,
+      ),
+    );
+  }
+}
+
+// Define the MealItem widget for displaying individual meal items
+class MealItem extends StatelessWidget {
+  final String id;
+  final String title;
+  final String imageUrl;
+  final int duration;
+  final String complexity;
+  final String affordability;
+
+  MealItem({
+    required this.id,
+    required this.title,
+    required this.imageUrl,
+    required this.duration,
+    required this.complexity,
+    required this.affordability,
+  });
+
+  String get complexityText {
+    switch (complexity) {
+      case 'Simple':
+        return 'Simple';
+      case 'Challenging':
+        return 'Challenging';
+      case 'Hard':
+        return 'Hard';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  String get affordabilityText {
+    switch (affordability) {
+      case 'Affordability':
+        return 'Affordable';
+      case 'Pricey':
+        return 'Pricey';
+      case 'Li':
+        return 'Luxurious';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  void selectMeal(BuildContext context) {
+    Navigator.of(context).pushNamed(
+      MealDetailScreen.routeName,
+      arguments: id,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => selectMeal(context),
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        elevation: 4,
+        margin: EdgeInsets.all(10),
+        child: Column(
+          children: <Widget>[
+            Stack(
+              children: <Widget>[
+                ClipRRect(
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(15),
+                  ),
+                  child: Image.network(
+                    imageUrl,
+                    height: 250,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  bottom: 20,
+                  right: 10,
+                  child: Container(
+                    width: 300,
+                    color: Colors.black54,
+                    padding: EdgeInsets.symmetric(
+                      vertical: 5,
+                      horizontal: 20,
+                    ),
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 26,
+                        color: Colors.white,
+                      ),
+                      softWrap: true,
+                      overflow: TextOverflow.fade,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Icon(Icons.schedule),
+                      SizedBox(width: 6),
+                      Text('$duration min'),
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Icon(Icons.work),
+                      SizedBox(width: 6),
+                      Text(complexityText),
+                    ],
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Icon(Icons.attach_money),
+                      SizedBox(width: 6),
+                      Text(affordabilityText),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Define the FavoritesScreen widget for displaying favorite meals
+class FavoritesScreen extends StatelessWidget {
+  final List<Meal> favoriteMeals;
+
+  FavoritesScreen(this.favoriteMeals);
+
+  @override
+  Widget build(BuildContext context) {
+    if (favoriteMeals.isEmpty) {
+      return Center(
+        child: Text('You have no favorites yet - start adding some!'),
+      );
+    } else {
+      return ListView.builder(
+        itemBuilder: (ctx, index) {
+          return MealItem(
+            id: favoriteMeals[index].id,
+                        title: favoriteMeals[index].title,
+                        imageUrl: favoriteMeals[index].imageUrl,
+                        duration: favoriteMeals[index].duration,
+                        affordability: favoriteMeals[index].affordability.toString(),
+                        complexity: favoriteMeals[index].complexity.toString(),
+                      );
+                    },
+                    itemCount: favoriteMeals.length,
+                  );
+                }
+              }
+            }
+
+            // Define the TabsScreen widget for displaying tabs
+            class TabsScreen extends StatefulWidget {
+              final List<Meal> favoriteMeals;
+
+              TabsScreen(this.favoriteMeals);
+
+              @override
+              _TabsScreenState createState() => _TabsScreenState();
+            }
+
+            class _TabsScreenState extends State<TabsScreen> {
+              late List<Map<String, dynamic>> _pages;
+
+              int _selectedPageIndex = 0;
+
+              @override
+              void initState() {
+                _pages = [
+                  {
+                    'page': CategoriesScreen(),
+                    'title': 'Categories',
+                  },
+                  {
+                    'page': FavoritesScreen(widget.favoriteMeals),
+                    'title': 'Your Favorites',
+                  },
+                ];
+                super.initState();
+              }
+
+              void _selectPage(int index) {
+                setState(() {
+                  _selectedPageIndex = index;
+                });
+              }
+
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                  title: Text(_pages[_selectedPageIndex]['title'] ?? 'Default Title'),
+                  ),
+                  body: _pages[_selectedPageIndex]['page'],
+                  bottomNavigationBar: BottomNavigationBar(
+                    onTap: _selectPage,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    unselectedItemColor: Colors.white,
+                    selectedItemColor: Theme.of(context).hintColor,
+                    currentIndex: _selectedPageIndex,
+                    items: [
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.category),
+                        label: 'Categories',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.star),
+                        label: 'Favorites',
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }
+
+            // Define the MainDrawer widget for displaying the app drawer
+            class MainDrawer extends StatelessWidget {
+              Widget buildListTile(String title, IconData icon, Function() tapHandler) {
+                return ListTile(
+                  leading: Icon(
+                    icon,
+                    size: 26,
+                  ),
+                  title: Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: 'RobotoCondensed',
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onTap: tapHandler,
+                );
+              }
+
+              @override
+              Widget build(BuildContext context) {
+                return Drawer(
+                  child: Column(
+                    children: <Widget>[
+                      Container(
+                        height: 120,
+                        width: double.infinity,
+                        padding: EdgeInsets.all(20),
+                        alignment: Alignment.centerLeft,
+                        color: Theme.of(context).hintColor,
+                        child: Text(
+                          'Cooking Up!',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 30,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      buildListTile(
+                        'Meals',
+                        Icons.restaurant,
+                        () {
+                          Navigator.of(context).pushReplacementNamed('/');
+                        },
+                      ),
+                      buildListTile(
+                        'Settings',
+                        Icons.settings,
+                        () {
+                          Navigator.of(context).pushReplacementNamed(FiltersScreen.routeName);
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }
+
+            // Define the FiltersScreen widget for managing meal filters
+            class FiltersScreen extends StatefulWidget {
+              static const routeName = '/filters';
+
+              final Function saveFilters;
+              final Map<String, bool> currentFilters;
+
+              FiltersScreen(this.currentFilters, this.saveFilters);
+
+              @override
+              _FiltersScreenState createState() => _FiltersScreenState();
+            }
+
+            class _FiltersScreenState extends State<FiltersScreen> {
+              late bool _glutenFree;
+              late bool _vegetarian;
+              late bool _vegan;
+              late bool _lactoseFree;
+
+              @override
+              initState() {
+                _glutenFree = widget.currentFilters['gluten']!;
+                _vegetarian = widget.currentFilters['vegetarian']!;
+                _vegan = widget.currentFilters['vegan']!;
+                _lactoseFree = widget.currentFilters['lactose']!;
+                super.initState();
+              }
+
+              Widget _buildSwitchListTile(
+                String title,
+                String description,
+                bool currentValue,
+                Function(bool) updateValue,
+              ) {
+                return SwitchListTile(
+                  title: Text(title),
+                  subtitle: Text(description),
+                  value: currentValue,
+                  onChanged: updateValue,
+                );
+              }
+
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: Text('Your Filters'),
+                    actions: <Widget>[
+                      IconButton(
+                        icon: Icon(Icons.save),
+                        onPressed: () {
+                          final selectedFilters = {
+                            'gluten': _glutenFree,
+                            'lactose': _lactoseFree,
+                            'vegetarian': _vegetarian,
+                            'vegan': _vegan,
+                          };
+                          widget.saveFilters(selectedFilters);
+                        },
+                      ),
+                    ],
+                  ),
+                  drawer: MainDrawer(),
+                  body: Column(
+                    children: <Widget>[
+                      Container(
+                        padding: EdgeInsets.all(20),
+                        child: Text(
+                          'Adjust your meal selection',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView(
+                          children: <Widget>[
+                            _buildSwitchListTile(
+                              'Gluten-free',
+                              'Only include gluten-free meals.',
+                              _glutenFree,
+                              (newValue) {
+                                setState(() {
+                                  _glutenFree = newValue;
+                                });
+                              },
+                            ),
+                            _buildSwitchListTile(
+                              'Lactose-free',
+                              'Only include lactose-free meals.',
+                              _lactoseFree,
+                              (newValue) {
+                                setState(() {
+                                  _lactoseFree = newValue;
+                                });
+                              },
+                            ),
+                            _buildSwitchListTile(
+                              'Vegetarian',
+                              'Only include vegetarian meals.',
+                              _vegetarian,
+                              (newValue) {
+                                setState(() {
+                                  _vegetarian = newValue;
+                                });
+                              },
+                            ),
+                            _buildSwitchListTile(
+                              'Vegan',
+                              'Only include vegan meals.',
+                              _vegan,
+                              (newValue) {
+                                setState(() {
+                                  _vegan = newValue;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            }
+
+            // Define the MainScreen widget for the initial screen
+            class MainScreen extends StatefulWidget {
+              final List<Meal> availableMeals;
+
+              MainScreen(this.availableMeals);
+
+              @override
+              _MainScreenState createState() => _MainScreenState();
+            }
+
+            class _MainScreenState extends State<MainScreen> {
+              late List<Meal> _favoriteMeals;
+
+              List<Map<String, dynamic>>? _pages;
+
+              int _selectedPageIndex = 0;
+
+              @override
+              void initState() {
+                _favoriteMeals = [];
+                _pages = [
+                  {
+                    'page': TabsScreen(_favoriteMeals),
+                    'title': 'Categories',
+                  },
+                  {
+                    'page': FavoritesScreen(_favoriteMeals),
+                    'title': 'Your Favorites',
+                  },
+                ];
+                super.initState();
+              }
+
+              void _selectPage(int index) {
+                setState(() {
+                  _selectedPageIndex = index;
+                });
+              }
+
+              @override
+              Widget build(BuildContext context) {
+                return Scaffold(
+                  appBar: AppBar(
+                    title: Text(_pages![_selectedPageIndex]['title']),
+                  ),
+                  body: _pages![_selectedPageIndex]['page'],
+                  bottomNavigationBar: BottomNavigationBar(
+                    onTap: _selectPage,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    unselectedItemColor: Colors.white,
+                    selectedItemColor: Theme.of(context).hintColor,
+                    currentIndex: _selectedPageIndex,
+                    items: [
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.category),
+                        label: 'Categories',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.star),
+                        label: 'Favorites',
+                      ),
+                    ],
+                  ),
+                  drawer: MainDrawer(),
+                );
+              }
+            }
+
+            // Define the Category class
+            class Category {
+              final String id;
+              final String title;
+              final Color color;
+
+              const Category({
+                required this.id,
+                required this.title,
+                this.color = Colors.orange,
+              });
+            }
+
+            // Define the Complexity enum
+            enum MealComplexity {
+              Simple,
+              Challenging,
+              Hard,
+            }
+
+            // Define the MealAffordability enum
+            enum MealAffordability {
+              Affordable,
+              Pricey,
+              Luxurious,
+            }
+
+// Define the MealDetailScreen widget for displaying meal details
+class MealDetailScreen extends StatelessWidget {
+  static const routeName = '/meal-detail';
+
+  final Function(String) toggleFavorite;
+  final Function(String) isFavorite;
+
+  MealDetailScreen(this.toggleFavorite, this.isFavorite);
+
+  Widget buildSectionTitle(BuildContext context, String text) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      child: Text(
+        text,
+        style: Theme.of(context).textTheme.headline6,
+      ),
+    );
+  }
+
+  Widget buildContainer(Widget child) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(
+          color: Colors.grey,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      margin: EdgeInsets.all(10),
+      padding: EdgeInsets.all(10),
+      height: 200,
+      width: 300,
+      child: child,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mealId = ModalRoute.of(context)?.settings.arguments as String;
+    final selectedMeal = DUMMY_MEALS.firstWhere((meal) => meal.id == mealId);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(selectedMeal.title),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            Container(
+              height: 300,
+              width: double.infinity,
+              child: Image.network(
+                selectedMeal.imageUrl,
+                fit: BoxFit.cover,
+              ),
+            ),
+            buildSectionTitle(context, 'Ingredients'),
+            buildContainer(
+              ListView.builder(
+                itemCount: selectedMeal.ingredients.length,
+                itemBuilder: (ctx, index) => Card(
+                  color: Theme.of(context).hintColor,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: 5,
+                      horizontal: 10,
+                    ),
+                    child: Text(selectedMeal.ingredients[index]),
+                  ),
+                ),
+              ),
+            ),
+            buildSectionTitle(context, 'Steps'),
+            buildContainer(
+              ListView.builder(
+                itemCount: selectedMeal.steps.length,
+                itemBuilder: (ctx, index) => Column(
+                  children: <Widget>[
+                    ListTile(
+                      leading: CircleAvatar(
+                        child: Text('# ${(index + 1)}'),
+                      ),
+                      title: Text(selectedMeal.steps[index]),
+                    ),
+                    Divider(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(
+          isFavorite(mealId) ? Icons.star : Icons.star_border,
+        ),
+        onPressed: () => toggleFavorite(mealId),
+      ),
+    );
+  }
+}
+
+void main() {
+  runApp(MyApp());
+}
+
+// Define the MyApp widget
+class MyApp extends StatefulWidget {
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+// Define the _MyAppState class
+class _MyAppState extends State<MyApp> {
+  late Map<String, bool> _filters;
+  late List<Meal> _availableMeals;
+  late List<Meal> _favoriteMeals;
+
+  @override
+  void initState() {
+    _filters = {
+      'gluten': false,
+      'lactose': false,
+      'vegetarian': false,
+      'vegan': false,
+    };
+    _availableMeals = DUMMY_MEALS.cast<Meal>();
+    _favoriteMeals = [];
+    super.initState();
+  }
+
+  void _setFilters(Map<String, bool> filterData) {
+    setState(() {
+      _filters = filterData;
+      _availableMeals = DUMMY_MEALS.where((meal) {
+        if (_filters['gluten']! && !meal.isGlutenFree) {
+          return false;
+        }
+        if (_filters['lactose']! && !meal.isLactoseFree) {
+          return false;
+        }
+        if (_filters['vegetarian']! && !meal.isVegetarian) {
+          return false;
+        }
+        if (_filters['vegan']! && !meal.isVegan) {
+          return false;
+        }
+        return true;
+      }).cast<Meal>().toList();
+    });
+  }
+
+  void _toggleFavorite(String mealId) {
+    final existingIndex = _favoriteMeals.indexWhere((meal) => meal.id == mealId);
+    if (existingIndex >= 0) {
+      setState(() {
+        _favoriteMeals.removeAt(existingIndex);
+      });
+    } else {
+      setState(() {
+        _favoriteMeals.add(
+          DUMMY_MEALS.firstWhere((meal) => meal.id == mealId) as Meal,
+        );
+      });
+    }
+  }
+
+  bool _isMealFavorite(String id) {
+    return _favoriteMeals.any((meal) => meal.id == id);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'DeliMeals',
+      theme: ThemeData(
+        primarySwatch: Colors.pink,
+        hintColor: Colors.amber,
+        canvasColor: Color.fromRGBO(255, 254, 229, 1),
+        fontFamily: 'Raleway',
+        textTheme: ThemeData.light().textTheme.copyWith(
+              bodyText1: TextStyle(
+                color: Color.fromRGBO(20, 51, 51, 1),
+              ),
+              bodyText2: TextStyle(
+                color: Color.fromRGBO(20, 51, 51, 1),
+              ),
+              headline6: TextStyle(
+                fontSize: 20,
+                fontFamily: 'RobotoCondensed',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+      ),
+      // home: CategoriesScreen(),
+      initialRoute: '/',
+
+
+  // ...
+  routes: {
+    '/': (ctx) => TabsScreen(_favoriteMeals),
+    CategoryMealsScreen.routeName: (ctx) {
+      List<Map<String, dynamic>> mealsAsMaps = _availableMeals.map((meal) {
+        return {
+          'id': meal.id,
+          'categories': meal.categories,
+          'title': meal.title,
+          'imageUrl': meal.imageUrl,
+          'duration': meal.duration,
+          'complexity': meal.complexity.index, // assuming complexity is an enum
+          'affordability': meal.affordability.index, // assuming affordability is an enum
+          // add other properties as needed
+        };
+      }).toList();
+   return CategoryMealsScreen(mealsAsMaps.cast<Meal>() as String, 'Category 1', 'Category 1 Meals' as List<Meal>);
+    },
+    MealDetailScreen.routeName: (ctx) => MealDetailScreen(_toggleFavorite, _isMealFavorite),
+    FiltersScreen.routeName: (ctx) => FiltersScreen(_filters, _setFilters),
+  },
+
+
+    );
+  }
+}

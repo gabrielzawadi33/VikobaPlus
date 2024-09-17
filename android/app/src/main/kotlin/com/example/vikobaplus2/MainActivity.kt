@@ -1,4 +1,4 @@
-package com.example.vikobaplus
+package com.example.vikobaplus2
 
 import io.flutter.embedding.android.FlutterActivity
 

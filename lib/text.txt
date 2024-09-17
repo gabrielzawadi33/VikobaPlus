@@ -1,0 +1,26 @@
+tom user 
+
+jina la likundi kikobatest
+mahali mabibo
+jina la kiongozi kiongozi
+namba ya simu 12345678
+password 12345678
+
+
+
+the memebers registration should be as the signup page with the default 
+    * name of the group
+    * password
+
+
+t* tasks 
+1. deleting a member (DONE)
+2. editing the member Details(to be done)
+3. making the edit password(to be done)
+4. income and expensed customization(DONE) **** Remaining the Priveledge Granting
+
+5. member details  consuming Api
+6. iMPLEMENT THE  priveledge functionalith
+     if  is not eleader then he cannot add , delete or edit a member
+     if is not a leader he cannot  add income or expenses
+7.Loan Implementation
